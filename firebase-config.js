@@ -19,8 +19,8 @@ const auth = firebase.auth();
 const db = firebase.database();
 
 // Cloudinary Configuration
-const CLOUD_NAME = "dfscughol";
-const UPLOAD_PRESET = "gk4_ds";
+const CLOUD_NAME = "da457cqma";
+const UPLOAD_PRESET = "do33_x";
 
 // 🌊 SOREX Settings
 const ADMIN_EMAILS = ['jasim28v@gmail.com'];
