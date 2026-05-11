@@ -1,0 +1,26 @@
+{
+  "name": "SOREX",
+  "short_name": "SOREX",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#0a1628",
+  "theme_color": "#3b82f6",
+  "description": "SOREX - Ocean Blue Social App",
+  "icons": [
+    {
+      "src": "/resources/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/resources/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "orientation": "portrait",
+  "scope": "/",
+  "lang": "ar-SA"
+}

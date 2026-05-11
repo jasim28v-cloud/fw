@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>🌊 SOREX | ملف شخصي</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#3b82f6">
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root{--glass:rgba(59,130,246,0.04);--border:rgba(59,130,246,0.15);--accent:#3b82f6;--accent2:#06b6d4;--bg:#050a14;--card:rgba(59,130,246,0.06)}
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:#fff;min-height:100vh;overflow-y:auto;-webkit-tap-highlight-color:transparent}
+        .cover-section{position:relative;width:100%;height:260px;overflow:hidden;cursor:pointer}
+        .cover-img{width:100%;height:130%;object-fit:cover;transition:transform 0.1s linear}
+        .cover-gradient{position:absolute;inset:0;background:linear-gradient(to bottom, transparent 30%, rgba(5,10,20,0.4) 60%, rgba(5,10,20,0.95) 100%);pointer-events:none;z-index:1}
+        .avatar-wrap{position:relative;z-index:2;margin-top:-60px;display:flex;justify-content:center}
+        .avatar-lg{width:120px;height:120px;border-radius:50%;overflow:hidden;cursor:pointer;background:linear-gradient(135deg, #3b82f6, #06b6d4, #60a5fa);padding:3px;box-shadow:0 0 30px rgba(59,130,246,0.4);animation:avatarGlow 3s ease-in-out infinite}
+        @keyframes avatarGlow{0%,100%{box-shadow:0 0 30px rgba(59,130,246,0.4)}50%{box-shadow:0 0 40px rgba(6,182,212,0.7)}}
+        .avatar-lg img{width:100%;height:100%;object-fit:cover;border-radius:50%;border:3px solid var(--bg)}
+        .profile-info{padding:20px;text-align:center}
+        .username{font-size:22px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px}
+        .badge-verified{background:linear-gradient(135deg, #3b82f6, #06b6d4);color:#fff;font-size:12px;padding:3px 6px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;font-weight:bold;box-shadow:0 0 15px rgba(96,165,250,0.6);animation:verifyGlow 2s ease-in-out infinite}
+        @keyframes verifyGlow{0%,100%{box-shadow:0 0 15px rgba(96,165,250,0.6)}50%{box-shadow:0 0 25px rgba(96,165,250,0.9)}}
+        .btn-back{position:fixed;top:20px;right:20px;background:rgba(0,0,0,0.5);backdrop-filter:blur(15px);width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:50;border:1px solid var(--border);color:#fff;font-size:16px}
+        .stats-row{display:flex;justify-content:center;gap:30px;margin:15px 20px;padding:18px;background:rgba(59,130,246,0.04);backdrop-filter:blur(20px);border-radius:20px;border:1px solid var(--border)}
+        .stat-item{text-align:center;cursor:pointer;transition:transform 0.2s}
+        .stat-item:hover{transform:scale(1.05)}
+        .stat-val{font-size:20px;font-weight:700;color:var(--accent2)}
+        .stat-lbl{font-size:10px;opacity:0.6;margin-top:2px}
+        .action-btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:0 20px 20px}
+        .btn{background:rgba(59,130,246,0.06);border:1px solid var(--border);padding:10px 20px;border-radius:25px;color:#fff;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:6px;backdrop-filter:blur(10px)}
+        .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;font-weight:700;color:#fff;box-shadow:0 8px 25px rgba(59,130,246,0.4)}
+        .section-title{font-size:16px;font-weight:700;padding:0 20px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+        .videos-compact{padding:0 8px 80px}
+        .video-compact-item{display:flex;gap:10px;margin-bottom:8px;background:rgba(59,130,246,0.03);border:1px solid rgba(59,130,246,0.08);border-radius:16px;padding:8px;cursor:pointer;backdrop-filter:blur(10px)}
+        .video-compact-thumb{width:120px;aspect-ratio:9/16;border-radius:10px;overflow:hidden;position:relative;flex-shrink:0;background:#000}
+        .video-compact-thumb img{width:100%;height:100%;object-fit:cover}
+        .spinner{width:36px;height:36px;border:3px solid rgba(59,130,246,0.2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;margin:30px auto}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .empty-state{text-align:center;opacity:0.5;padding:40px 20px}
+        .empty-state i{font-size:48px;color:var(--accent);margin-bottom:12px;display:block}
+        .toast-msg{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:rgba(5,10,20,0.95);padding:12px 24px;border-radius:30px;z-index:300;border:1px solid rgba(59,130,246,0.3);font-size:13px;opacity:0;transition:opacity 0.3s;pointer-events:none}
+        .toast-msg.show{opacity:1}
+    </style>
+</head>
+<body>
+<div class="load-center" id="loader" style="display:flex;align-items:center;justify-content:center;min-height:80vh;flex-direction:column;gap:12px;color:rgba(255,255,255,0.5)"><div class="spinner"></div><span>🌊 تحميل الملف...</span></div>
+<div id="content" style="display:none">
+    <div class="cover-section" id="coverSection"><img class="cover-img" id="coverImg" src="" alt="cover" style="display:none"><div class="cover-gradient"></div></div>
+    <button class="btn-back" onclick="history.back()"><i class="fas fa-arrow-right"></i></button>
+    <div class="avatar-wrap"><div class="avatar-lg" id="avatarDisplay"><img src="" alt="avatar" id="avatarImg"></div></div>
+    <div class="profile-info"><div class="username"><span id="nameDisplay"></span></div><div class="bio-text" id="bioDisplay" style="font-size:13px;opacity:0.7;max-width:320px;margin:0 auto"></div><div class="contact-info" id="contactInfo" style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:8px;font-size:12px"></div></div>
+    <div class="stats-row">
+        <div class="stat-item" onclick="showList('following')"><div class="stat-val" id="statFollowing">0</div><div class="stat-lbl">يتابع</div></div>
+        <div class="stat-item" onclick="showList('followers')"><div class="stat-val" id="statFollowers">0</div><div class="stat-lbl">متابع</div></div>
+        <div class="stat-item"><div class="stat-val" id="statLikes">0</div><div class="stat-lbl">إعجابات</div></div>
+    </div>
+    <div class="action-btns" id="actionsBar"></div>
+    <div class="section-title"><i class="fas fa-video" style="color:var(--accent)"></i> الفيديوهات</div>
+    <div class="videos-compact" id="videosContainer"></div>
+</div>
+<script src="firebase-config.js"></script>
+<script>
+    let profileUserId=null,currentUser=null,currentUserData=null,allVideos=[],allUsers={},isOwnProfile=false;
+    auth.onAuthStateChanged(async u=>{if(!u){window.location.href='auth.html';return}currentUser=u;const params=new URLSearchParams(window.location.search);profileUserId=params.get('uid')||u.uid;isOwnProfile=(profileUserId===u.uid);const snap=await db.ref('users/'+u.uid).get();if(snap.exists())currentUserData={uid:u.uid,...snap.val()};await loadAll();await loadProfile();document.getElementById('loader').style.display='none';document.getElementById('content').style.display='block';});
+    async function loadAll(){const us=await db.ref('users').once('value');allUsers=us.val()||{};const vs=await db.ref('videos').once('value');allVideos=Object.entries(vs.val()||{}).map(([k,v])=>({id:k,...v}));}
+    async function loadProfile(){const u=allUsers[profileUserId];if(!u)return;const goldBadge=u.isVerified?'<span class="badge-verified"><i class="fas fa-check"></i></span>':'';document.getElementById('nameDisplay').innerHTML='@'+(u.username||'مستخدم')+' '+goldBadge;document.getElementById('bioDisplay').innerText=u.bio||'لم تتم إضافة سيرة ذاتية بعد';document.getElementById('statFollowing').innerText=Object.keys(u.following||{}).length;document.getElementById('statFollowers').innerText=Object.keys(u.followers||{}).length;const uvs=allVideos.filter(v=>v.sender===profileUserId);document.getElementById('statLikes').innerText=uvs.reduce((s,v)=>s+(v.likes||0),0);const coverImg=document.getElementById('coverImg');if(u.coverImageUrl){coverImg.src=u.coverImageUrl;coverImg.style.display='block'}else{document.getElementById('coverSection').style.background=u.coverColor||COVER_COLORS[0]}document.getElementById('avatarImg').src=u.avatarUrl||(DICEBEAR_URL+'?seed='+profileUserId);const vc=document.getElementById('videosContainer');vc.innerHTML='';if(!uvs.length){vc.innerHTML='<div class="empty-state"><i class="fas fa-video-slash"></i><p>لا توجد فيديوهات</p></div>'}else{uvs.sort((a,b)=>(b.timestamp||0)-(a.timestamp||0)).forEach(v=>{const d=document.createElement('div');d.className='video-compact-item';d.innerHTML=`<div class="video-compact-thumb">${v.thumbnail?`<img src="${v.thumbnail}">`:''}<div class="play-icon" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff;z-index:1"><i class="fas fa-play"></i></div></div><div class="video-compact-info" style="flex:1;min-width:0"><div class="vci-caption" style="font-size:13px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${(v.description||'بدون وصف').substring(0,80)}</div><div class="vci-meta" style="font-size:11px;opacity:0.5;display:flex;gap:12px;align-items:center;margin-top:4px"><span><i class="fas fa-heart" style="color:var(--accent)"></i> ${v.likes||0}</span><span><i class="fas fa-comment"></i> ${v.comments?Object.keys(v.comments).length:0}</span><span><i class="fas fa-music"></i> ${v.music||'Original Sound'}</span></div></div>`;vc.appendChild(d);})}const actionsBar=document.getElementById('actionsBar');if(isOwnProfile){actionsBar.innerHTML=`<button class="btn btn-primary" onclick="window.location.href='settings.html'"><i class="fas fa-edit"></i> تعديل الملف</button><button class="btn" onclick="window.location.href='chat.html'"><i class="fas fa-envelope"></i> الرسائل</button><button class="btn" onclick="auth.signOut();window.location.href='auth.html'"><i class="fas fa-sign-out-alt"></i> خروج</button>`}else{const isFollowing=currentUserData?.following?.[profileUserId];actionsBar.innerHTML=`<button class="btn btn-primary" id="followBtn" onclick="toggleFollowUser()">${isFollowing?'<i class="fas fa-user-check"></i> متابع':'<i class="fas fa-user-plus"></i> متابعة'}</button><button class="btn" onclick="window.location.href='chat.html?uid=${profileUserId}'"><i class="fas fa-comment"></i> مراسلة</button>`}}
+    async function toggleFollowUser(){if(!currentUser||isOwnProfile)return;const btn=document.getElementById('followBtn');const userRef=db.ref('users/'+currentUser.uid+'/following/'+profileUserId);const targetRef=db.ref('users/'+profileUserId+'/followers/'+currentUser.uid);const snap=await userRef.get();if(snap.exists()){await userRef.remove();await targetRef.remove();btn.innerHTML='<i class="fas fa-user-plus"></i> متابعة'}else{await userRef.set(true);await targetRef.set(true);btn.innerHTML='<i class="fas fa-user-check"></i> متابع'}await loadAll();await loadProfile();}
+    function showList(type){const u=allUsers[profileUserId];const list=type==='followers'?(u?.followers||{}):(u?.following||{});const ids=Object.keys(list);if(!ids.length){alert('لا يوجد');return}const names=ids.map(id=>{const user=allUsers[id];return user?'@'+user.username:'مستخدم'}).join('\n');alert((type==='followers'?'المتابِعون':'المتابَعون')+':\n'+names);}
+    console.log('🌊 SOREX Profile Ready ✨');
+</script>
+</body>
+</html>
