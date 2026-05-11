@@ -1,0 +1,69 @@
+name: 📱 Build SOREX APK
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 سحب المستودع
+        uses: actions/checkout@v4
+      
+      - name: 🐍 إعداد Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: 🔧 توليد ملفات SOREX
+        run: python scraper.py
+      
+      - name: 📱 إعداد Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: 📦 تثبيت Capacitor و Android Platform
+        run: |
+          npm install -g @capacitor/cli @capacitor/core @capacitor/android
+      
+      - name: 🏗️ بناء مجلد www
+        run: |
+          mkdir -p www
+          cp *.html www/
+          cp *.js www/
+          cp *.json www/
+          cp -r resources www/ 2>/dev/null || true
+      
+      - name: ⚙️ إعداد Capacitor
+        run: |
+          npx cap add android 2>/dev/null || echo "Android platform exists"
+          npx cap sync android
+      
+      - name: 📦 نسخ الأيقونة
+        run: |
+          mkdir -p android/app/src/main/res/mipmap-xxxhdpi
+          cp resources/icon.png android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png 2>/dev/null || echo "⚠️ استخدم أيقونة افتراضية"
+      
+      - name: 🔨 بناء APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+      
+      - name: 📤 رفع APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: SOREX-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+      
+      - name: ✅ تأكيد النجاح
+        run: |
+          echo "╔════════════════════════════════════════════╗"
+          echo "║  📱 SOREX APK Build Complete!            ║"
+          echo "║  ✅ تم بناء التطبيق بنجاح                 ║"
+          echo "╚════════════════════════════════════════════╝"
