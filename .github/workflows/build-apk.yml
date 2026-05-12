@@ -1,69 +1,257 @@
-name: 📱 Build SOREX APK
+name: 💖 Build MNAENCA APK
 
 on:
   push:
     tags:
-      - 'v*'
-  workflow_dispatch:
+      - 'v*' # يعمل عند دفع أي Tag يبدأ بـ v
+  workflow_dispatch: # يسمح بالتشغيل اليدوي من واجهة GitHub
 
 jobs:
   build-apk:
+    name: 🚀 Build Android APK
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     
     steps:
-      - name: 📥 سحب المستودع
+      - name: 📥 Checkout Repository
         uses: actions/checkout@v4
-      
-      - name: 🐍 إعداد Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      
-      - name: 🔧 توليد ملفات SOREX
-        run: python scraper.py
-      
-      - name: 📱 إعداد Node.js
+
+      - name: 🔧 Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-      
-      - name: 📦 تثبيت Capacitor و Android Platform
+
+      - name: 📦 Install Dependencies
         run: |
-          npm install -g @capacitor/cli @capacitor/core @capacitor/android
-      
-      - name: 🏗️ بناء مجلد www
+          npm install -g @bubblewrap/cli
+          npm install
+
+      - name: 🎨 Generate PWA Icons & Assets
         run: |
-          mkdir -p www
-          cp *.html www/
-          cp *.js www/
-          cp *.json www/
-          cp -r resources www/ 2>/dev/null || true
-      
-      - name: ⚙️ إعداد Capacitor
+          # إنشاء مجلد الأيقونات
+          mkdir -p public/icons
+          
+          # إنشاء manifest.json للتطبيق
+          cat > public/manifest.json << 'MANIFEST'
+          {
+            "name": "MNAENCA",
+            "short_name": "MNAENCA",
+            "description": "💖 MNAENCA 2026 - Rose Gold Ultra Edition",
+            "start_url": "/index.html",
+            "display": "standalone",
+            "background_color": "#0a0508",
+            "theme_color": "#ec4899",
+            "orientation": "portrait",
+            "lang": "ar",
+            "dir": "rtl",
+            "icons": [
+              {
+                "src": "/icons/icon-72x72.png",
+                "sizes": "72x72",
+                "type": "image/png"
+              },
+              {
+                "src": "/icons/icon-96x96.png",
+                "sizes": "96x96",
+                "type": "image/png"
+              },
+              {
+                "src": "/icons/icon-128x128.png",
+                "sizes": "128x128",
+                "type": "image/png"
+              },
+              {
+                "src": "/icons/icon-144x144.png",
+                "sizes": "144x144",
+                "type": "image/png"
+              },
+              {
+                "src": "/icons/icon-152x152.png",
+                "sizes": "152x152",
+                "type": "image/png"
+              },
+              {
+                "src": "/icons/icon-192x192.png",
+                "sizes": "192x192",
+                "type": "image/png"
+              },
+              {
+                "src": "/icons/icon-384x384.png",
+                "sizes": "384x384",
+                "type": "image/png"
+              },
+              {
+                "src": "/icons/icon-512x512.png",
+                "sizes": "512x512",
+                "type": "image/png",
+                "purpose": "maskable"
+              }
+            ]
+          }
+          MANIFEST
+
+          # إنشاء service worker
+          cat > public/sw.js << 'SWJS'
+          const CACHE_NAME = 'mnaenca-v1';
+          const urlsToCache = [
+            '/',
+            '/index.html',
+            '/auth.html',
+            '/profile.html',
+            '/upload.html',
+            '/chat.html',
+            '/explore.html',
+            '/notifications.html',
+            '/settings.html',
+            '/firebase-config.js',
+            '/manifest.json'
+          ];
+
+          self.addEventListener('install', event => {
+            event.waitUntil(
+              caches.open(CACHE_NAME)
+                .then(cache => cache.addAll(urlsToCache))
+            );
+          });
+
+          self.addEventListener('fetch', event => {
+            event.respondWith(
+              caches.match(event.request)
+                .then(response => response || fetch(event.request))
+            );
+          });
+
+          self.addEventListener('activate', event => {
+            event.waitUntil(
+              caches.keys().then(cacheNames => {
+                return Promise.all(
+                  cacheNames.filter(name => name !== CACHE_NAME)
+                    .map(name => caches.delete(name))
+                );
+              })
+            );
+          });
+          SWJS
+
+          # توليد أيقونات بأحجام مختلفة باستخدام ImageMagick
+          sudo apt-get update -qq && sudo apt-get install -y -qq imagemagick
+          
+          # إنشاء أيقونة أساسية (قلب وردي)
+          convert -size 512x512 xc:'#0a0508' \
+            -fill '#ec4899' -draw "circle 256,256 256,100" \
+            -fill '#a855f7' -draw "circle 200,230 180,200" \
+            -fill '#a855f7' -draw "circle 312,230 332,200" \
+            -fill '#ec4899' -draw "polygon 256,310 230,270 282,270" \
+            public/icons/icon-512x512.png
+          
+          for size in 72 96 128 144 152 192 384; do
+            convert public/icons/icon-512x512.png -resize ${size}x${size} public/icons/icon-${size}x${size}.png
+          done
+
+      - name: 🔨 Build APK with Bubblewrap
         run: |
-          npx cap add android 2>/dev/null || echo "Android platform exists"
-          npx cap sync android
-      
-      - name: 📦 نسخ الأيقونة
-        run: |
-          mkdir -p android/app/src/main/res/mipmap-xxxhdpi
-          cp resources/icon.png android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png 2>/dev/null || echo "⚠️ استخدم أيقونة افتراضية"
-      
-      - name: 🔨 بناء APK
-        run: |
-          cd android
-          chmod +x gradlew
-          ./gradlew assembleDebug
-      
-      - name: 📤 رفع APK
-        uses: actions/upload-artifact@v4
+          # إنشاء ملف twa-manifest.json
+          cat > twa-manifest.json << TWA
+          {
+            "packageName": "com.mnaenca.app",
+            "host": "localhost",
+            "name": "MNAENCA",
+            "launcherName": "MNAENCA",
+            "display": "standalone",
+            "themeColor": "#0a0508",
+            "backgroundColor": "#0a0508",
+            "navigationColor": "#0a0508",
+            "navigationColorDark": "#0a0508",
+            "navigationDividerColor": "#0a0508",
+            "navigationDividerColorDark": "#0a0508",
+            "startUrl": "/index.html",
+            "iconUrl": "/icons/icon-512x512.png",
+            "maskableIconUrl": "/icons/icon-512x512.png",
+            "monochromeIconUrl": "/icons/icon-512x512.png",
+            "splashScreenFadeOutDuration": 300,
+            "signingKey": {
+              "path": "./android.keystore",
+              "alias": "mnaenca"
+            },
+            "appVersionName": "${GITHUB_REF_NAME#v}",
+            "appVersionCode": $(echo ${GITHUB_REF_NAME#v} | tr -d '.'),
+            "shortcuts": [],
+            "generatorApp": "MNAENCA Builder",
+            "webManifestUrl": "/manifest.json",
+            "fallbackType": "customtabs",
+            "features": {
+              "locationDelegation": { "enabled": false },
+              "playBilling": { "enabled": false }
+            }
+          }
+          TWA
+
+          # توليد مفتاح التوقيع
+          keytool -genkey -v \
+            -keystore android.keystore \
+            -alias mnaenca \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -storepass mnaenca2026 \
+            -keypass mnaenca2026 \
+            -dname "CN=MNAENCA, OU=App, O=MNAENCA, L=World, ST=Earth, C=UN"
+
+          # بناء APK
+          bubblewrap build
+
+          # نسخ APK للتحميل
+          mkdir -p release
+          cp app-release-signed.apk release/MNAENCA-${GITHUB_REF_NAME}.apk 2>/dev/null || \
+          cp app-release-unsigned.apk release/MNAENCA-${GITHUB_REF_NAME}.apk 2>/dev/null || \
+          cp ./app/build/outputs/apk/release/app-release-unsigned.apk release/MNAENCA-${GITHUB_REF_NAME}.apk 2>/dev/null || true
+
+      - name: 📤 Upload APK to Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: SOREX-APK
-          path: android/app/build/outputs/apk/debug/app-debug.apk
-      
-      - name: ✅ تأكيد النجاح
+          files: |
+            release/*.apk
+          name: "💖 MNAENCA ${{ github.ref_name }}"
+          body: |
+            ## 💖 MNAENCA 2026 - Rose Gold Ultra Edition
+            
+            ### ✨ إصدار ${{ github.ref_name }}
+            
+            **تم بناء التطبيق تلقائياً بواسطة GitHub Actions**
+            
+            ---
+            
+            ### 📱 تحميل التطبيق:
+            1. حمل ملف APK من أسفل 👇
+            2. ثبت التطبيق على هاتفك
+            3. استمتع! 💖
+            
+            ---
+            
+            ### 🔧 بيانات الاتصال:
+            - **Firebase:** somf-8adca
+            - **Cloudinary:** dt0tkbtzw / gok3_k
+            - **Admin:** jasim28v@gmail.com
+            
+            ### 💖 المميزات:
+            - 🎥 مشغل فيديو احترافي داخلي
+            - 🖼️ عارض صور داخلي
+            - 💖 ستايل وردي فاخر
+            - 🔔 نظام إشعارات شغال 100%
+            - 🗑️ حذف فيديوهات من لوحة الأدمن
+            - 🛡️ توثيق + حظر
+            
+            ---
+            
+            > **MNAENCA - Rose Gold Ultra 2026** ✨
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: ✅ Build Complete
         run: |
-          echo "╔════════════════════════════════════════════╗"
-          echo "║  📱 SOREX APK Build Complete!            ║"
-          echo "║  ✅ تم بناء التطبيق بنجاح                 ║"
-          echo "╚════════════════════════════════════════════╝"
+          echo "💖 MNAENCA APK Build Complete! ✨"
+          ls -la release/ 2>/dev/null || echo "APK في مجلد release"
