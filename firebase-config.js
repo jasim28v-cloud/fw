@@ -1,6 +1,6 @@
-// 🌊 SOREX 2026 - Ocean Blue Configuration
-// Firebase: somf-8adca | Cloudinary: dfscughol
-// ✨ PREMIUM: PWA + Notifications + Compact Grid + Delete Videos
+// 💖 MNAENCA 2026 - Rose Gold Configuration
+// Firebase: somf-8adca | Cloudinary: dt0tkbtzw
+// ✨ PREMIUM: Notifications + Compact Grid + Delete Videos
 
 const firebaseConfig = {
     apiKey: "AIzaSyBJp12x71p1_Qsb4VmhdZ_VmHmN2Sn49F0",
@@ -22,29 +22,22 @@ const db = firebase.database();
 const CLOUD_NAME = "dt0tkbtzw";
 const UPLOAD_PRESET = "gok3_k";
 
-// 🌊 SOREX Settings
+// 💖 MNAENCA Settings
 const ADMIN_EMAILS = ['jasim28v@gmail.com'];
 const DICEBEAR_URL = "https://api.dicebear.com/7.x/big-smile/svg";
 const COVER_COLORS = [
-    "linear-gradient(135deg, #0c1929, #1a365d, #1e3a5f)",
-    "linear-gradient(135deg, #05101a, #0c1929, #1a365d)",
-    "linear-gradient(135deg, #164e63, #0e7490, #06b6d4)",
-    "linear-gradient(135deg, #1e3a8a, #2563eb, #3b82f6)",
-    "linear-gradient(135deg, #06b6d4, #3b82f6, #60a5fa)",
-    "linear-gradient(135deg, #0a1628, #1a2744, #3b82f6)"
+    "linear-gradient(135deg, #831843, #9d174d, #be185d)",
+    "linear-gradient(135deg, #4c0519, #831843, #9d174d)",
+    "linear-gradient(135deg, #701a75, #86198f, #a21caf)",
+    "linear-gradient(135deg, #ec4899, #db2777, #be185d)",
+    "linear-gradient(135deg, #f472b6, #ec4899, #db2777)",
+    "linear-gradient(135deg, #1a0a15, #2d0a1e, #ec4899)"
 ];
 
-// 🌊 App Info
-const APP_NAME = "SOREX";
+// 💖 App Info
+const APP_NAME = "MNAENCA";
 const APP_VERSION = "2026.1";
-const PRIMARY_COLOR = "#3b82f6";
-const SECONDARY_COLOR = "#06b6d4";
+const PRIMARY_COLOR = "#ec4899";
+const SECONDARY_COLOR = "#f472b6";
 
-// 🌊 Register Service Worker for PWA
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js')
-        .then(reg => console.log('🌊 SW registered!', reg))
-        .catch(err => console.log('SW error:', err));
-}
-
-console.log('🌊 %c'+APP_NAME+' v'+APP_VERSION+' Ready ✨', 'color: #3b82f6; font-size: 16px; font-weight: bold;');
+console.log('💖 %c'+APP_NAME+' v'+APP_VERSION+' Ready ✨', 'color: #ec4899; font-size: 16px; font-weight: bold;');
